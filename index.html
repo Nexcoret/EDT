@@ -1,423 +1,411 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Evaluación de Desempeño - Securitas</title>
-    <!-- Tailwind CSS para el diseño rápido y responsivo -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- html2pdf.js para la generación del documento PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    
-    <style>
-        body {
-            background-color: #f3f4f6;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        /* Ocultar elementos específicos cuando se genera el PDF */
-        .pdf-hidden { display: block; }
-        .is-exporting .pdf-hidden { display: none !important; }
-        
-        /* Ajustes para inputs al exportar a PDF (eliminar bordes innecesarios) */
-        .is-exporting input, .is-exporting textarea {
-            border: none;
-            background-color: transparent;
-            resize: none;
-            padding-left: 0;
-            padding-right: 0;
-        }
-        
-        /* Estilos para el área de firma */
-        .signature-pad {
-            border: 2px dashed #d1d5db;
-            border-radius: 0.5rem;
-            background-color: #f9fafb;
-            cursor: crosshair;
-            touch-action: none; /* Previene el scroll al firmar en móviles */
-        }
-        
-        /* Evitar que las tarjetas se corten a la mitad en el PDF */
-        .avoid-page-break {
-            page-break-inside: avoid;
-        }
 
-        /* Diseño de los botones de radio personalizados (Escala 1-5) */
-        .rating-label input:checked + div {
-            background-color: #e60000; /* Rojo Securitas */
-            color: white;
-            border-color: #e60000;
-        }
-    </style>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Evaluación de Desempeño - Securitas</title>
+  <!-- Tailwind CSS para el diseño rápido y responsivo -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- html2pdf.js para la generación del documento PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <style>
+    body {
+      background-color: #f3f4f6;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Ocultar elementos específicos cuando se genera el PDF */
+    .pdf-hidden {
+      display: block;
+    }
+
+    .is-exporting .pdf-hidden {
+      display: none !important;
+    }
+
+    /* Ajustes para inputs al exportar a PDF */
+    .is-exporting input,
+    .is-exporting textarea {
+      border: none !important;
+      background-color: transparent !important;
+      resize: none;
+      padding-left: 0;
+      padding-right: 0;
+      box-shadow: none !important;
+      color: #000;
+    }
+
+    /* Estructura de cuadros técnicos solo en PDF */
+    .is-exporting .info-grid,
+    .is-exporting .analysis-grid {
+      display: grid !important;
+      gap: 0 !important;
+      border: 1.5px solid #000 !important;
+      border-radius: 0 !important;
+      overflow: hidden !important;
+    }
+
+    .is-exporting .info-cell,
+    .is-exporting .analysis-cell {
+      border: 0.5px solid #000 !important;
+      padding: 6px 10px !important;
+      margin: 0 !important;
+    }
+
+    .is-exporting .info-cell {
+      background-color: #f3f3f3 !important;
+    }
+
+    /* Estilos para el área de firma en la APP - TAMAÑO GRANDE PARA FIRMAR CÓMODAMENTE */
+    .signature-pad {
+      border: 2px dashed #d1d5db;
+      border-radius: 0.5rem;
+      background-color: #f9fafb;
+      cursor: crosshair;
+      touch-action: none;
+      width: 100%;
+      height: 200px;
+      /* Tamaño aumentado en el formulario */
+    }
+
+    /* Reducción drástica de firmas en el INFORME PDF */
+    .is-exporting .signature-pad {
+      width: 180px !important;
+      height: 70px !important;
+      border: none !important;
+      background-color: transparent !important;
+    }
+
+    .is-exporting .signature-wrap {
+      border-bottom: 1px solid #000 !important;
+      margin-bottom: 4px !important;
+    }
+
+    .avoid-page-break {
+      page-break-inside: avoid;
+    }
+
+    .rating-label input:checked+div {
+      background-color: #e60000;
+      color: white;
+      border-color: #e60000;
+    }
+  </style>
 </head>
+
 <body class="text-gray-800 antialiased font-sans pb-10">
 
-    <!-- Contenedor principal estilo App -->
-    <div class="max-w-3xl mx-auto bg-white min-h-screen shadow-2xl sm:rounded-b-2xl overflow-hidden">
-        
-        <!-- Contenido que se exportará a PDF -->
-        <div id="informe-pdf" class="p-6 sm:p-10">
-            
-            <!-- Encabezado / Logo Securitas -->
-            <div class="flex flex-col items-center mb-8 border-b pb-6 text-center">
-                <div class="flex gap-2 mb-1">
-                    <div class="w-6 h-6 bg-[#e60000] rounded-full"></div>
-                    <div class="w-6 h-6 bg-[#e60000] rounded-full"></div>
-                    <div class="w-6 h-6 bg-[#e60000] rounded-full"></div>
-                </div>
-                <h1 class="text-4xl font-extrabold tracking-tight text-black mb-2">Securitas</h1>
-                <h2 class="text-xl font-semibold text-gray-700">Evaluación de Desempeño</h2>
-                <p class="text-sm text-gray-500 font-medium">Servicio: Planta Blumar</p>
-            </div>
+  <div class="max-w-3xl mx-auto bg-white min-h-screen shadow-2xl sm:rounded-b-2xl overflow-hidden">
 
-            <!-- Sección: Información General -->
-            <div class="mb-8 avoid-page-break">
-                <h3 class="text-lg font-bold text-gray-800 mb-4 border-b-2 border-gray-200 pb-2 uppercase text-sm tracking-wider">1. Información General</h3>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase">Nombre del Trabajador</label>
-                        <input type="text" class="w-full mt-1 border border-gray-300 rounded-md p-2 focus:ring-[#e60000] focus:border-[#e60000] outline-none transition" placeholder="Ej. Juan Pérez">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase">RUT Trabajador</label>
-                        <input type="text" class="w-full mt-1 border border-gray-300 rounded-md p-2 focus:ring-[#e60000] focus:border-[#e60000] outline-none transition" placeholder="12.345.678-9">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase">Cargo Desempeñado</label>
-                        <input type="text" class="w-full mt-1 border border-gray-300 rounded-md p-2 focus:ring-[#e60000] focus:border-[#e60000] outline-none transition" placeholder="Guardia de Seguridad">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase">Instalación</label>
-                        <input type="text" class="w-full mt-1 border border-gray-300 rounded-md p-2 bg-gray-100 font-semibold" value="Planta Blumar" readonly>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase">Nombre del Revisor</label>
-                        <input type="text" class="w-full mt-1 border border-gray-300 rounded-md p-2 focus:ring-[#e60000] focus:border-[#e60000] outline-none transition" placeholder="Nombre supervisor">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase">Cargo del Revisor</label>
-                        <input type="text" class="w-full mt-1 border border-gray-300 rounded-md p-2 focus:ring-[#e60000] focus:border-[#e60000] outline-none transition" placeholder="Jefe de Turno / Supervisor">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase">Fecha Última Revisión</label>
-                        <input type="date" class="w-full mt-1 border border-gray-300 rounded-md p-2 focus:ring-[#e60000] outline-none transition">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase">Fecha de Hoy</label>
-                        <input type="date" id="fecha-hoy" class="w-full mt-1 border border-gray-300 rounded-md p-2 focus:ring-[#e60000] outline-none transition">
-                    </div>
-                </div>
-            </div>
+    <div id="informe-pdf" class="p-6 sm:p-10">
 
-            <!-- Leyenda de evaluación -->
-            <div class="bg-blue-50 text-blue-800 text-xs p-3 rounded-lg mb-6 border border-blue-100">
-                <strong>Escala de Evaluación:</strong><br>
-                1 = Deficiente | 2 = Aceptable | 3 = Bueno | 4 = Muy Bueno | 5 = Excelente
-            </div>
+      <!-- Encabezado -->
+      <div class="flex flex-col items-center mb-8 border-b pb-6 text-center">
+        <div class="flex gap-2 mb-1">
+          <div class="w-6 h-6 bg-[#e60000] rounded-full"></div>
+          <div class="w-6 h-6 bg-[#e60000] rounded-full"></div>
+          <div class="w-6 h-6 bg-[#e60000] rounded-full"></div>
+        </div>
+        <h1 class="text-4xl font-extrabold tracking-tight text-black mb-2 uppercase">Securitas</h1>
+        <h2 class="text-xl font-bold text-gray-700">Evaluación de Desempeño Profesional</h2>
+        <p class="text-sm text-gray-500 font-medium">Servicio: Planta Blumar</p>
+      </div>
 
-            <!-- Sección: Competencias Evaluadas -->
-            <div class="mb-8">
-                <h3 class="text-lg font-bold text-gray-800 mb-4 border-b-2 border-gray-200 pb-2 uppercase text-sm tracking-wider">2. Competencias Evaluadas</h3>
-                <div id="competencias-container" class="space-y-4">
-                    <!-- Las competencias se inyectan por JS -->
-                </div>
-            </div>
+      <!-- 1. Información General (Cuadro en PDF) -->
+      <div class="mb-8 avoid-page-break">
+        <h3
+          class="text-lg font-bold text-gray-800 mb-4 border-b-2 border-gray-200 pb-2 uppercase text-sm tracking-wider">
+          1. Información General</h3>
+        <div class="info-grid grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="info-cell">
+            <label class="block text-[10px] font-bold text-gray-500 uppercase">Nombre del Trabajador</label>
+            <input type="text" class="w-full mt-1 border border-gray-300 rounded-md p-2 outline-none" placeholder="Nombre completo">
+          </div>
+          <div class="info-cell">
+            <label class="block text-[10px] font-bold text-gray-500 uppercase">RUT Trabajador</label>
+            <input type="text" class="w-full mt-1 border border-gray-300 rounded-md p-2 outline-none" placeholder="12.345.678-9">
+          </div>
+          <div class="info-cell">
+            <label class="block text-[10px] font-bold text-gray-500 uppercase">Cargo Desempeñado</label>
+            <input type="text" class="w-full mt-1 border border-gray-300 rounded-md p-2 outline-none" placeholder="Puesto de trabajo">
+          </div>
+          <div class="info-cell">
+            <label class="block text-[10px] font-bold text-gray-500 uppercase">Instalación</label>
+            <input type="text" class="w-full mt-1 border border-gray-300 rounded-md p-2 bg-gray-50 font-semibold" value="Planta Blumar" readonly>
+          </div>
+          <div class="info-cell">
+            <label class="block text-[10px] font-bold text-gray-500 uppercase">Nombre del Revisor</label>
+            <input type="text" class="w-full mt-1 border border-gray-300 rounded-md p-2 outline-none" placeholder="Nombre supervisor">
+          </div>
+          <div class="info-cell">
+            <label class="block text-[10px] font-bold text-gray-500 uppercase">Cargo del Revisor</label>
+            <input type="text" class="w-full mt-1 border border-gray-300 rounded-md p-2 outline-none" placeholder="Jefe de Turno">
+          </div>
+          <div class="info-cell">
+            <label class="block text-[10px] font-bold text-gray-500 uppercase">Fecha Última Revisión</label>
+            <input type="date" class="w-full mt-1 border border-gray-300 rounded-md p-2 outline-none">
+          </div>
+          <div class="info-cell">
+            <label class="block text-[10px] font-bold text-gray-500 uppercase">Fecha de Hoy</label>
+            <input type="date" id="fecha-hoy" class="w-full mt-1 border border-gray-300 rounded-md p-2 outline-none">
+          </div>
+        </div>
+      </div>
 
-            <!-- Sección: Evaluación Desempeño Operacional -->
-            <div class="mb-8">
-                <h3 class="text-lg font-bold text-gray-800 mb-4 border-b-2 border-gray-200 pb-2 uppercase text-sm tracking-wider">3. Evaluación Desempeño Operacional</h3>
-                <div id="operacional-container" class="space-y-4">
-                    <!-- Las variables operacionales se inyectan por JS -->
-                </div>
-            </div>
+      <!-- Secciones de Evaluación -->
+      <div class="mb-8">
+        <h3
+          class="text-lg font-bold text-gray-800 mb-4 border-b-2 border-gray-200 pb-2 uppercase text-sm tracking-wider">
+          2. Competencias Evaluadas</h3>
+        <div id="competencias-container" class="space-y-4"></div>
+      </div>
 
-            <!-- Sección: Análisis Cualitativo -->
-            <div class="mb-8 space-y-4 avoid-page-break">
-                <h3 class="text-lg font-bold text-gray-800 mb-4 border-b-2 border-gray-200 pb-2 uppercase text-sm tracking-wider">4. Análisis y Compromisos</h3>
-                
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">Fortalezas del Colaborador</label>
-                    <textarea rows="3" class="w-full border border-gray-300 rounded-md p-2 focus:ring-[#e60000] focus:border-[#e60000] outline-none transition" placeholder="Indique los aspectos positivos a destacar..."></textarea>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">Áreas de Mejoras / Brechas Detectadas</label>
-                    <textarea rows="3" class="w-full border border-gray-300 rounded-md p-2 focus:ring-[#e60000] focus:border-[#e60000] outline-none transition" placeholder="Indique qué aspectos necesitan desarrollo..."></textarea>
-                </div>
+      <div class="mb-8">
+        <h3
+          class="text-lg font-bold text-gray-800 mb-4 border-b-2 border-gray-200 pb-2 uppercase text-sm tracking-wider">
+          3. Evaluación Desempeño Operacional</h3>
+        <div id="operacional-container" class="space-y-4"></div>
+      </div>
 
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">Plan de desarrollo / Acciones Correctivas</label>
-                    <textarea rows="3" class="w-full border border-gray-300 rounded-md p-2 focus:ring-[#e60000] focus:border-[#e60000] outline-none transition" placeholder="¿Qué se hará para mejorar?"></textarea>
-                </div>
+      <!-- 4. Análisis y Compromisos (Cuadro en PDF) -->
+      <div class="mb-8 avoid-page-break">
+        <h3
+          class="text-lg font-bold text-gray-800 mb-4 border-b-2 border-gray-200 pb-2 uppercase text-sm tracking-wider">
+          4. Análisis Cualitativo y Compromisos</h3>
+        <div class="analysis-grid flex flex-col">
+          <div class="analysis-cell bg-white">
+            <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Fortalezas del Colaborador</label>
+            <textarea rows="2" class="w-full border border-gray-100 rounded p-2 text-sm outline-none" placeholder="Indique fortalezas..."></textarea>
+          </div>
+          <div class="analysis-cell bg-white">
+            <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Áreas de Mejoras / Brechas Detectadas</label>
+            <textarea rows="2" class="w-full border border-gray-100 rounded p-2 text-sm outline-none" placeholder="Indique debilidades..."></textarea>
+          </div>
+          <div class="analysis-cell bg-white">
+            <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Plan de Desarrollo / Acciones Correctivas</label>
+            <textarea rows="2" class="w-full border border-gray-100 rounded p-2 text-sm outline-none" placeholder="Compromisos específicos..."></textarea>
+          </div>
+          <div class="analysis-cell bg-gray-50">
+            <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Plazo de Seguimiento</label>
+            <input type="text" class="w-full p-1 text-sm outline-none bg-transparent" placeholder="Ej: 15 de abril 2024">
+          </div>
+        </div>
+      </div>
 
-                <div class="sm:w-1/2">
-                    <label class="block text-sm font-bold text-gray-700 mb-1">Plazo de Seguimiento</label>
-                    <input type="text" class="w-full border border-gray-300 rounded-md p-2 focus:ring-[#e60000] focus:border-[#e60000] outline-none transition" placeholder="Ej. 30 días, 3 meses...">
-                </div>
-            </div>
-
-            <!-- Sección: Resultado General -->
-            <div class="mb-8 bg-gray-50 p-6 rounded-xl border border-gray-200 avoid-page-break">
-                <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2 uppercase text-sm tracking-wider">5. Resultado General</h3>
-                
-                <div class="flex flex-col sm:flex-row items-center justify-between gap-6">
-                    <div class="text-center sm:text-left">
-                        <p class="text-sm text-gray-500 font-bold uppercase mb-1">Promedio Obtenido</p>
-                        <div class="text-5xl font-black text-[#e60000]">
-                            <span id="promedio-valor">0.0</span> <span class="text-2xl text-gray-400">/ 5.0</span>
-                        </div>
-                    </div>
-
-                    <div class="flex-1 w-full sm:ml-8">
-                        <p class="text-sm text-gray-500 font-bold uppercase mb-3">Nivel de Desempeño</p>
-                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm" id="desempeno-checkboxes">
-                            <label class="flex items-center gap-2"><input type="checkbox" disabled class="w-4 h-4 text-[#e60000]" value="Excelente"> Excelente</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" disabled class="w-4 h-4 text-[#e60000]" value="Muy Bueno"> Muy Bueno</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" disabled class="w-4 h-4 text-[#e60000]" value="Bueno"> Bueno</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" disabled class="w-4 h-4 text-[#e60000]" value="Aceptable"> Aceptable</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" disabled class="w-4 h-4 text-[#e60000]" value="Requiere Mejora"> Requiere Mejora</label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sección: Declaración y Firma -->
-            <div class="mb-4 avoid-page-break">
-                <h3 class="text-lg font-bold text-gray-800 mb-6 border-b-2 border-gray-200 pb-2 uppercase text-sm tracking-wider">6. Declaración y Firmas</h3>
-                
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                    <!-- Firma Evaluador -->
-                    <div>
-                        <p class="font-bold text-gray-700 text-sm mb-2">Firma del Evaluador</p>
-                        <canvas id="canvas-evaluador" width="300" height="150" class="signature-pad w-full"></canvas>
-                        <div class="flex justify-between items-center mt-2">
-                            <button class="pdf-hidden text-xs text-gray-500 hover:text-red-600 font-semibold" onclick="clearCanvas('canvas-evaluador')">Limpiar firma</button>
-                            <div class="border-b border-gray-400 w-2/3 mt-6"></div>
-                        </div>
-                        <p class="text-xs text-gray-500 mt-1 text-right w-2/3 ml-auto">Nombre / Timbre</p>
-                    </div>
-
-                    <!-- Firma Colaborador -->
-                    <div>
-                        <p class="font-bold text-gray-700 text-sm mb-2">Firma del Colaborador</p>
-                        <canvas id="canvas-colaborador" width="300" height="150" class="signature-pad w-full"></canvas>
-                        <div class="flex justify-between items-center mt-2">
-                            <button class="pdf-hidden text-xs text-gray-500 hover:text-red-600 font-semibold" onclick="clearCanvas('canvas-colaborador')">Limpiar firma</button>
-                            <div class="border-b border-gray-400 w-2/3 mt-6"></div>
-                        </div>
-                        <p class="text-xs text-gray-500 mt-1 text-right w-2/3 ml-auto">Nombre y RUT</p>
-                    </div>
-                </div>
-            </div>
-
-        </div> <!-- Fin Contenido PDF -->
-
-        <!-- Botón de acción -->
-        <div class="p-6 bg-gray-50 border-t flex justify-center pdf-hidden sm:rounded-b-2xl">
-            <button onclick="generarPDF()" class="bg-[#e60000] hover:bg-red-700 text-white font-bold py-4 px-8 rounded-full shadow-lg transition transform hover:scale-105 flex items-center gap-2 w-full sm:w-auto justify-center text-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                Generar Informe PDF
-            </button>
+      <!-- 5. Resultado General y Firmas -->
+      <div class="avoid-page-break border-2 border-gray-800 rounded-lg overflow-hidden">
+        <div class="bg-gray-800 p-3">
+          <h3 class="text-md font-bold text-white uppercase tracking-wider text-center">5. Cierre de Evaluación</h3>
         </div>
 
-    </div>
+        <div class="p-6 bg-white">
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-6 mb-10">
+            <div class="text-center sm:text-left">
+              <p class="text-[10px] text-gray-500 font-bold uppercase mb-1">Puntaje Final</p>
+              <div class="text-6xl font-black text-[#e60000]">
+                <span id="promedio-valor">0.0</span> <span class="text-xl text-gray-400">/ 5.0</span>
+              </div>
+            </div>
 
-    <!-- Script de lógica -->
-    <script>
-        // --- 1. DATOS Y RENDERIZADO DE PREGUNTAS ---
-        const competencias = [
+            <div class="flex-1 w-full sm:ml-10">
+              <p class="text-[10px] text-gray-500 font-bold uppercase mb-3 text-center sm:text-left">Nivel Alcanzado</p>
+              <div class="grid grid-cols-2 gap-2 text-[11px]" id="desempeno-checkboxes">
+                <label class="flex items-center gap-2"><input type="checkbox" disabled class="w-3 h-3" value="Excelente"> Excelente</label>
+                <label class="flex items-center gap-2"><input type="checkbox" disabled class="w-3 h-3" value="Muy Bueno"> Muy Bueno</label>
+                <label class="flex items-center gap-2"><input type="checkbox" disabled class="w-3 h-3" value="Bueno"> Bueno</label>
+                <label class="flex items-center gap-2"><input type="checkbox" disabled class="w-3 h-3" value="Aceptable"> Aceptable</label>
+                <label class="flex items-center gap-2" style="grid-column: span 2;"><input type="checkbox" disabled class="w-3 h-3" value="Requiere Mejora"> Requiere Mejora</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sección de Firmas (Grandes en UI, Pequeñas en PDF) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 mt-6">
+            <div class="flex flex-col items-center">
+              <div class="signature-wrap w-full flex justify-center">
+                <canvas id="canvas-evaluador" width="400" height="200" class="signature-pad"></canvas>
+              </div>
+              <button class="pdf-hidden text-[10px] text-gray-400 mt-2 hover:text-red-600 font-bold" onclick="clearCanvas('canvas-evaluador')">BORRAR FIRMA EVALUADOR</button>
+              <p class="text-[10px] text-gray-600 mt-2 font-bold uppercase">Firma del Evaluador</p>
+            </div>
+            <div class="flex flex-col items-center">
+              <div class="signature-wrap w-full flex justify-center">
+                <canvas id="canvas-colaborador" width="400" height="200" class="signature-pad"></canvas>
+              </div>
+              <button class="pdf-hidden text-[10px] text-gray-400 mt-2 hover:text-red-600 font-bold" onclick="clearCanvas('canvas-colaborador')">BORRAR FIRMA COLABORADOR</button>
+              <p class="text-[10px] text-gray-600 mt-2 font-bold uppercase">Firma del Colaborador</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div> <!-- Fin #informe-pdf -->
+
+    <div class="p-6 bg-gray-50 border-t flex justify-center pdf-hidden sm:rounded-b-2xl">
+      <button onclick="generarPDF()" class="bg-[#e60000] hover:bg-red-700 text-white font-bold py-4 px-10 rounded-full shadow-xl transition transform hover:scale-105 flex items-center gap-3 w-full sm:w-auto justify-center text-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Generar Informe Final
+            </button>
+    </div>
+  </div>
+
+  <script>
+    const competencias = [
             { id: 'c1', nombre: 'Responsabilidad', desc: 'Cumplimientos de Tareas y Compromisos' },
             { id: 'c2', nombre: 'Puntualidad y Asistencia', desc: 'Respeto Horarios Establecidos' },
-            { id: 'c3', nombre: 'Calidad de Trabajo', desc: 'Exactitud, Orden, Cumplimiento de estándares' },
-            { id: 'c4', nombre: 'Conocimiento Técnico', desc: 'Manejo de Herramientas Tecnológicas y Procesos' },
-            { id: 'c5', nombre: 'Iniciativa', desc: 'Capacidad de anticiparse y proponer mejoras' },
-            { id: 'c6', nombre: 'Trabajo en equipo', desc: 'Colaboración y buen trato con colegas' },
-            { id: 'c7', nombre: 'Comunicación', desc: 'Claridad, respeto, reporte oportuno' },
-            { id: 'c8', nombre: 'Orientación a resultados', desc: 'Enfoque en objetivos y productividad' }
+            { id: 'c3', nombre: 'Calidad de Trabajo', desc: 'Exactitud, Orden y Estándares' },
+            { id: 'c4', nombre: 'Conocimiento Técnico', desc: 'Herramientas y procesos técnicos' },
+            { id: 'c5', nombre: 'Iniciativa', desc: 'Proactividad y propuesta de mejoras' },
+            { id: 'c6', nombre: 'Trabajo en equipo', desc: 'Colaboración y trato con pares' },
+            { id: 'c7', nombre: 'Comunicación', desc: 'Claridad y reporte oportuno' },
+            { id: 'c8', nombre: 'Orientación a resultados', desc: 'Enfoque en objetivos' }
         ];
 
         const operacional = [
-            { id: 'o1', nombre: 'Cumplimiento del rol', desc: 'Realización efectiva de las tareas asignadas' },
-            { id: 'o2', nombre: 'Manejo de incidentes', desc: 'Resolución, tiempos de reacción, reporte' },
-            { id: 'o3', nombre: 'Cumplimiento de protocolos', desc: 'Uso de EPP, normas de seguridad, procedimientos' },
-            { id: 'o4', nombre: 'Relaciones con el cliente', desc: 'Trato, respuesta, profesionalismo interno/externo' },
-            { id: 'o5', nombre: 'Asistencia Operacional', desc: 'Cumplimientos a sus turnos por rol y comprometidos' }
+            { id: 'o1', nombre: 'Cumplimiento del rol', desc: 'Realización efectiva de tareas' },
+            { id: 'o2', nombre: 'Manejo de incidentes', desc: 'Reacción y reporte de eventos' },
+            { id: 'o3', nombre: 'Cumplimiento de protocolos', desc: 'Uso de EPP y seguridad' },
+            { id: 'o4', nombre: 'Relaciones con el cliente', desc: 'Profesionalismo y respuesta' },
+            { id: 'o5', nombre: 'Asistencia Operacional', desc: 'Asistencia a turnos rolados' }
         ];
 
-        function crearTarjetaEvaluacion(item) {
+        function crearTarjeta(item) {
             return `
-                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm avoid-page-break hover:border-red-300 transition">
-                    <div class="mb-3">
-                        <p class="font-bold text-gray-800 text-base">${item.nombre}</p>
-                        <p class="text-xs text-gray-500">${item.desc}</p>
+                <div class="bg-white border border-gray-200 rounded-lg p-3 shadow-sm avoid-page-break">
+                    <div class="mb-2">
+                        <p class="font-bold text-gray-800 text-sm">${item.nombre}</p>
+                        <p class="text-[10px] text-gray-500">${item.desc}</p>
                     </div>
-                    <div class="flex justify-between gap-2 mb-3 max-w-sm">
+                    <div class="flex justify-between gap-1 mb-2">
                         ${[1,2,3,4,5].map(num => `
                             <label class="rating-label flex-1 text-center cursor-pointer">
                                 <input type="radio" name="${item.id}" value="${num}" class="hidden eval-input">
-                                <div class="w-full py-2 rounded-md border border-gray-300 text-gray-600 font-bold hover:bg-gray-50 transition">
-                                    ${num}
-                                </div>
+                                <div class="w-full py-2 rounded border border-gray-300 text-xs font-bold transition">${num}</div>
                             </label>
                         `).join('')}
                     </div>
-                    <input type="text" placeholder="Observaciones (opcional)..." class="w-full text-sm border-b border-gray-200 py-1 px-2 focus:border-[#e60000] outline-none transition bg-transparent text-gray-700">
+                    <input type="text" placeholder="Observaciones..." class="w-full text-[11px] border-b border-gray-100 py-1 outline-none transition bg-transparent">
                 </div>
             `;
         }
 
-        document.getElementById('competencias-container').innerHTML = competencias.map(crearTarjetaEvaluacion).join('');
-        document.getElementById('operacional-container').innerHTML = operacional.map(crearTarjetaEvaluacion).join('');
-
-        // Setear fecha actual
+        document.getElementById('competencias-container').innerHTML = competencias.map(crearTarjeta).join('');
+        document.getElementById('operacional-container').innerHTML = operacional.map(crearTarjeta).join('');
         document.getElementById('fecha-hoy').valueAsDate = new Date();
 
-
-        // --- 2. LÓGICA DE CÁLCULO DE PROMEDIO ---
-        const totalItems = competencias.length + operacional.length; // 13
+        const totalItems = competencias.length + operacional.length;
         
-        document.addEventListener('change', function(e) {
-            if (e.target.classList.contains('eval-input')) {
-                calcularPromedio();
-            }
+        document.addEventListener('change', (e) => {
+            if (e.target.classList.contains('eval-input')) calcularPromedio();
         });
 
         function calcularPromedio() {
             const inputs = document.querySelectorAll('.eval-input:checked');
             let suma = 0;
-            inputs.forEach(input => {
-                suma += parseInt(input.value);
-            });
-
-            const promedio = inputs.length > 0 ? (suma / inputs.length).toFixed(1) : 0.0;
-            document.getElementById('promedio-valor').innerText = promedio;
-
-            actualizarNivelDesempeno(promedio, inputs.length === totalItems);
+            inputs.forEach(i => suma += parseInt(i.value));
+            const prom = inputs.length > 0 ? (suma / inputs.length).toFixed(1) : 0.0;
+            document.getElementById('promedio-valor').innerText = prom;
+            actualizarNivel(prom);
         }
 
-        function actualizarNivelDesempeno(prom, estaCompleto) {
+        function actualizarNivel(prom) {
             const checkboxes = document.querySelectorAll('#desempeno-checkboxes input');
-            checkboxes.forEach(cb => { cb.checked = false; cb.parentElement.classList.remove('font-bold', 'text-[#e60000]'); });
-
-            if (prom == 0) return;
-
-            let nivel = "";
-            if (prom >= 4.5) nivel = "Excelente";
-            else if (prom >= 3.5) nivel = "Muy Bueno";
-            else if (prom >= 2.5) nivel = "Bueno";
-            else if (prom >= 1.5) nivel = "Aceptable";
-            else nivel = "Requiere Mejora";
-
             checkboxes.forEach(cb => {
+                cb.checked = false;
+                cb.parentElement.style.fontWeight = 'normal';
+                cb.parentElement.style.color = 'inherit';
+            });
+            if (prom == 0) return;
+            let nivel = prom >= 4.5 ? "Excelente" : prom >= 3.5 ? "Muy Bueno" : prom >= 2.5 ? "Bueno" : prom >= 1.5 ? "Aceptable" : "Requiere Mejora";
+            checkboxes.forEach(cb => { 
                 if (cb.value === nivel) {
                     cb.checked = true;
-                    cb.parentElement.classList.add('font-bold', 'text-[#e60000]');
+                    cb.parentElement.style.fontWeight = 'bold';
+                    cb.parentElement.style.color = '#e60000';
                 }
             });
         }
 
-
-        // --- 3. LÓGICA DE PIZARRAS DE FIRMA (CANVAS) ---
-        function initSignaturePad(canvasId) {
-            const canvas = document.getElementById(canvasId);
+        function initSignature(id) {
+            const canvas = document.getElementById(id);
             const ctx = canvas.getContext('2d');
-            let isDrawing = false;
+            let drawing = false;
             
-            // Configurar el grosor y color del trazo
-            ctx.lineWidth = 2;
-            ctx.lineCap = 'round';
-            ctx.strokeStyle = '#000000';
-
-            // Adaptar coordenadas para touch y mouse
-            function getCoordinates(e) {
-                const rect = canvas.getBoundingClientRect();
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                return {
-                    x: clientX - rect.left,
-                    y: clientY - rect.top
-                };
-            }
-
-            function startPosition(e) {
-                isDrawing = true;
-                const pos = getCoordinates(e);
-                ctx.beginPath();
-                ctx.moveTo(pos.x, pos.y);
-                draw(e);
-            }
-
-            function endPosition() {
-                isDrawing = false;
-                ctx.beginPath();
-            }
-
-            function draw(e) {
-                if (!isDrawing) return;
-                e.preventDefault(); // Evita scroll en táctil mientras dibuja
-                const pos = getCoordinates(e);
-                ctx.lineTo(pos.x, pos.y);
-                ctx.stroke();
-            }
-
-            // Mouse Events
-            canvas.addEventListener('mousedown', startPosition);
-            canvas.addEventListener('mouseup', endPosition);
-            canvas.addEventListener('mousemove', draw);
-            canvas.addEventListener('mouseout', endPosition);
-
-            // Touch Events
-            canvas.addEventListener('touchstart', startPosition, { passive: false });
-            canvas.addEventListener('touchend', endPosition);
-            canvas.addEventListener('touchmove', draw, { passive: false });
-        }
-
-        function clearCanvas(canvasId) {
-            const canvas = document.getElementById(canvasId);
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
-
-        // Inicializar ambas firmas
-        window.onload = () => {
-            initSignaturePad('canvas-evaluador');
-            initSignaturePad('canvas-colaborador');
-        };
-
-
-        // --- 4. EXPORTACIÓN A PDF ---
-        function generarPDF() {
-            // Validar si todas las preguntas fueron contestadas (Opcional, pero recomendado)
-            const respondidas = document.querySelectorAll('.eval-input:checked').length;
-            if (respondidas < totalItems) {
-                if(!confirm(`Solo has evaluado ${respondidas} de ${totalItems} criterios. ¿Deseas generar el PDF de todos modos?`)) {
-                    return;
-                }
-            }
-
-            const element = document.getElementById('informe-pdf');
-            const appContainer = document.querySelector('body');
-            
-            // Agregar clase para ocultar botones y limpiar bordes para impresión
-            appContainer.classList.add('is-exporting');
-
-            // Configuración del PDF
-            const trabajador = document.querySelector('input[placeholder="Ej. Juan Pérez"]').value || 'Trabajador';
-            const opt = {
-                margin:       [10, 10, 10, 10], // Margen en mm
-                filename:     `Evaluacion_Desempeno_Securitas_${trabajador.replace(/\s+/g, '_')}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true }, // Escala 2 mejora la resolución
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            // Función para obtener la posición correcta del mouse o toque
+            const getPos = (e) => {
+                const r = canvas.getBoundingClientRect();
+                const cX = e.touches ? e.touches[0].clientX : e.clientX;
+                const cY = e.touches ? e.touches[0].clientY : e.clientY;
+                // Calculamos la escala por si el canvas está siendo visualmente escalado por CSS
+                const scaleX = canvas.width / r.width;
+                const scaleY = canvas.height / r.height;
+                return { x: (cX - r.left) * scaleX, y: (cY - r.top) * scaleY };
             };
 
-            // Generar PDF y luego quitar la clase de exportación
-            html2pdf().set(opt).from(element).save().then(() => {
-                appContainer.classList.remove('is-exporting');
+            const start = (e) => { 
+                drawing = true; 
+                const p = getPos(e); 
+                ctx.beginPath(); 
+                ctx.moveTo(p.x, p.y); 
+            };
+
+            const stop = () => { drawing = false; ctx.closePath(); };
+
+            const draw = (e) => { 
+                if (!drawing) return; 
+                e.preventDefault(); 
+                const p = getPos(e); 
+                ctx.lineTo(p.x, p.y); 
+                ctx.stroke(); 
+            };
+
+            ctx.lineWidth = 3; 
+            ctx.lineCap = 'round'; 
+            ctx.strokeStyle = '#000';
+            
+            canvas.addEventListener('mousedown', start);
+            canvas.addEventListener('mouseup', stop);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('touchstart', start, {passive:false});
+            canvas.addEventListener('touchend', stop);
+            canvas.addEventListener('touchmove', draw, {passive:false});
+        }
+
+        function clearCanvas(id) { const c = document.getElementById(id); c.getContext('2d').clearRect(0,0,c.width,c.height); }
+
+        window.onload = () => { initSignature('canvas-evaluador'); initSignature('canvas-colaborador'); };
+
+        function generarPDF() {
+            window.scrollTo(0,0);
+            const element = document.getElementById('informe-pdf');
+            
+            // Sincronizar inputs para el motor de PDF
+            element.querySelectorAll('input, textarea').forEach(i => {
+                if(i.type !== 'checkbox' && i.type !== 'radio') {
+                    i.setAttribute('value', i.value);
+                    if(i.tagName === 'TEXTAREA') i.textContent = i.value;
+                }
+            });
+
+            document.body.classList.add('is-exporting');
+            
+            const options = {
+                margin: [10, 10],
+                filename: 'Evaluacion_Securitas_Blumar.pdf',
+                html2canvas: { scale: 2, scrollY: 0, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak: { mode: 'avoid-all' }
+            };
+
+            html2pdf().set(options).from(element).save().then(() => {
+                document.body.classList.remove('is-exporting');
             });
         }
-    </script>
+  </script>
 </body>
+
 </html>
